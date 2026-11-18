@@ -3,12 +3,18 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const scoring = require("./data/scoring.js");
+const aihot = require("./data/aihot.js");
 
 const ROOT = __dirname;
 const CONFIG_PATH = path.join(ROOT, "config.json");
 const LEGACY_PATH = path.join(ROOT, "data", "legacy-hot-trends.js");
 const OUTPUT_PATH = path.join(ROOT, "data", "hot-trends.json");
 const TIMEOUT_MS = 12000;
+const AIHOT_UA = "Mozilla/5.0 (compatible; WaveKolHotRadar/3.1; +https://aihot.news)";
+const AIHOT_ENDPOINTS = {
+  latest: "https://aihot.news/api/v1/agent/latest?limit=30",
+  hot: "https://aihot.news/api/v1/agent/hot",
+};
 const HISTORY_DAYS = 30;
 
 function loadLegacy() {
@@ -69,6 +75,56 @@ async function fetchJson(url) {
   }
 }
 
+async function fetchText(url, userAgent) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        accept: "text/plain,*/*",
+        "user-agent": userAgent || "Mozilla/5.0 (compatible; WaveKolHotRadar/3.1)",
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// AIHOT：160+ 信源的 AI 精选/热点，作为热榜之外的「高价值信源」层
+async function fetchAiHot(todayTopics, entities) {
+  const [latestText, hotText] = await Promise.all([
+    fetchText(AIHOT_ENDPOINTS.latest, AIHOT_UA),
+    fetchText(AIHOT_ENDPOINTS.hot, AIHOT_UA),
+  ]);
+  const parsed = aihot.parse({ latest: latestText, hot: hotText });
+  const norm = scoring.normalizeTitle;
+  const enrich = (item) => {
+    const key = norm(item.title);
+    const topic = (todayTopics || [])
+      .filter((candidate) => scoring.sameTopic(key, norm(candidate.title)))
+      .sort((a, b) => b.platformCount - a.platformCount || b.todayScore - a.todayScore)[0] || null;
+    item.hotTopic = topic
+      ? { title: topic.title, platforms: topic.platforms, bestRank: topic.bestRank, score: topic.todayScore, url: topic.bestUrl }
+      : null;
+    item.entities = (entities || [])
+      .filter((entity) => scoring.keywordMatcher([entity.name, ...(entity.aliases || [])])(`${item.title} ${item.summary || ""}`))
+      .slice(0, 4)
+      .map((entity) => ({ id: entity.id, name: entity.name, itemCount: entity.itemCount, platformCount: entity.platformCount }));
+    return item;
+  };
+  return {
+    fetchedAt: new Date().toISOString(),
+    fetchedAtBeijing: beijingStamp(),
+    source: "AIHOT（https://aihot.news）",
+    license: "仅内部参考；对外商业使用需取得 AIHOT 授权",
+    hot: parsed.hot.map(enrich),
+    latest: parsed.latest.map(enrich),
+  };
+}
+
 async function fetchPlatform(platform, apiSources) {
   for (const source of apiSources) {
     for (const alias of platform.aliases || [platform.id]) {
@@ -122,6 +178,10 @@ async function main() {
     items: scoring.withScores(ok.flatMap((result) => result.items)),
   };
   const trimmed = trimDays(days, today);
+  const report = scoring.buildReport(trimmed, today, config.platformConfig, {
+    watchlist: config.watchlist || [],
+    verticals: config.verticals || [],
+  });
 
   const data = {
     schemaVersion: 3,
@@ -148,13 +208,19 @@ async function main() {
       })),
     },
     days: trimmed,
-    report: scoring.buildReport(trimmed, today, config.platformConfig, {
-      watchlist: config.watchlist || [],
-      verticals: config.verticals || [],
-    }),
+    report,
     watchlist: config.watchlist || [],
     verticals: config.verticals || [],
   };
+
+  const allTodayTopics = scoring.buildTopics(scoring.withDate(days[today].items, today), today, "today");
+  try {
+    data.aihot = await fetchAiHot(allTodayTopics, report.entities);
+    console.log(`[ok] AIHOT：${data.aihot.hot.length} 个热点、${data.aihot.latest.length} 条精选`);
+  } catch (error) {
+    console.warn(`[warn] AIHOT 抓取失败，保留热榜数据：${error.message}`);
+    data.aihot = { error: error.message, fetchedAt: new Date().toISOString() };
+  }
 
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(data));
   const entityCount = data.report.entities.filter((entity) => entity.itemCount > 0).length;
