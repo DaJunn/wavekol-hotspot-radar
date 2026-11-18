@@ -124,7 +124,7 @@ async function main() {
   const trimmed = trimDays(days, today);
 
   const data = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: new Date().toISOString(),
     generatedAtBeijing: beijingStamp(),
     timezone: "Asia/Shanghai",
@@ -148,11 +148,17 @@ async function main() {
       })),
     },
     days: trimmed,
-    report: scoring.buildReport(trimmed, today, config.platformConfig),
+    report: scoring.buildReport(trimmed, today, config.platformConfig, {
+      watchlist: config.watchlist || [],
+      verticals: config.verticals || [],
+    }),
+    watchlist: config.watchlist || [],
+    verticals: config.verticals || [],
   };
 
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(data));
-  console.log(`[ok] ${today} 采集完成：${ok.length}/${results.length} 个平台，${days[today].items.length} 条榜单`);
+  const entityCount = data.report.entities.filter((entity) => entity.itemCount > 0).length;
+  console.log(`[ok] ${today} 采集完成：${ok.length}/${results.length} 个平台，${days[today].items.length} 条榜单，${entityCount} 个关注实体有动静`);
   console.log(`[ok] 输出 ${OUTPUT_PATH}`);
 }
 

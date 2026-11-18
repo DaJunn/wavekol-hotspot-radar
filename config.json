@@ -119,6 +119,266 @@
       "aliases": [
         "36kr"
       ]
+    },
+    {
+      "id": "ithome",
+      "name": "IT之家",
+      "aliases": [
+        "ithome"
+      ]
+    },
+    {
+      "id": "juejin",
+      "name": "掘金",
+      "aliases": [
+        "juejin"
+      ]
+    },
+    {
+      "id": "huxiu",
+      "name": "虎嗅",
+      "aliases": [
+        "huxiu"
+      ]
+    }
+  ],
+  "watchlist": [
+    {
+      "id": "nvidia-jensen",
+      "name": "英伟达 / 黄仁勋",
+      "group": "AI 算力",
+      "aliases": [
+        "英伟达",
+        "黄仁勋",
+        "NVIDIA",
+        "Jensen Huang",
+        "老黄",
+        "NVDA"
+      ]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "group": "AI 公司",
+      "aliases": [
+        "OpenAI",
+        "ChatGPT",
+        "奥特曼",
+        "Sam Altman",
+        "GPT-6",
+        "GPT-5"
+      ]
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic / Claude",
+      "group": "AI 公司",
+      "aliases": [
+        "Anthropic",
+        "Claude"
+      ]
+    },
+    {
+      "id": "google-ai",
+      "name": "谷歌 / Gemini",
+      "group": "AI 公司",
+      "aliases": [
+        "谷歌",
+        "Google",
+        "Gemini",
+        "DeepMind"
+      ]
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "group": "国产大模型",
+      "aliases": [
+        "DeepSeek",
+        "深度求索"
+      ]
+    },
+    {
+      "id": "alibaba-ai",
+      "name": "阿里 / 千问",
+      "group": "国产大模型",
+      "aliases": [
+        "阿里巴巴",
+        "阿里云",
+        "通义",
+        "千问",
+        "Qwen"
+      ]
+    },
+    {
+      "id": "bytedance",
+      "name": "字节 / 豆包",
+      "group": "国产大模型",
+      "aliases": [
+        "字节跳动",
+        "豆包",
+        "火山引擎"
+      ]
+    },
+    {
+      "id": "tencent",
+      "name": "腾讯 / 混元",
+      "group": "国产大模型",
+      "aliases": [
+        "腾讯",
+        "混元",
+        "元宝"
+      ]
+    },
+    {
+      "id": "xiaomi",
+      "name": "小米 / 雷军",
+      "group": "消费科技",
+      "aliases": [
+        "小米",
+        "雷军"
+      ]
+    },
+    {
+      "id": "apple",
+      "name": "苹果",
+      "group": "消费科技",
+      "aliases": [
+        "苹果",
+        "iPhone",
+        "Apple"
+      ]
+    },
+    {
+      "id": "huawei",
+      "name": "华为",
+      "group": "消费科技",
+      "aliases": [
+        "华为",
+        "鸿蒙",
+        "昇腾",
+        "麒麟"
+      ]
+    },
+    {
+      "id": "musk",
+      "name": "马斯克 / 特斯拉",
+      "group": "AI 算力",
+      "aliases": [
+        "马斯克",
+        "Musk",
+        "特斯拉",
+        "xAI",
+        "SpaceX"
+      ]
+    },
+    {
+      "id": "robotics",
+      "name": "机器人 / 具身智能",
+      "group": "AI 应用",
+      "aliases": [
+        "机器人",
+        "具身智能",
+        "人形机器人",
+        "宇树",
+        "智元"
+      ]
+    },
+    {
+      "id": "wechat-commerce",
+      "name": "视频号 / 微信小店",
+      "group": "平台与政策",
+      "aliases": [
+        "视频号",
+        "微信小店",
+        "微信电商",
+        "小店"
+      ]
+    },
+    {
+      "id": "brands",
+      "name": "品牌出海",
+      "group": "出海",
+      "aliases": [
+        "出海",
+        "跨境",
+        "关税",
+        "亚马逊",
+        "TikTok",
+        "Temu",
+        "Shein"
+      ]
+    }
+  ],
+  "verticals": [
+    {
+      "id": "ai-tech",
+      "name": "AI·科技",
+      "description": "大模型、算力、芯片、机器人与消费电子",
+      "keywords": [
+        "AI",
+        "人工智能",
+        "大模型",
+        "ChatGPT",
+        "GPT",
+        "Claude",
+        "Gemini",
+        "DeepSeek",
+        "Qwen",
+        "通义",
+        "豆包",
+        "混元",
+        "英伟达",
+        "黄仁勋",
+        "芯片",
+        "算力",
+        "半导体",
+        "数据中心",
+        "机器人",
+        "具身智能",
+        "自动驾驶",
+        "量子计算",
+        "开源",
+        "6G",
+        "苹果",
+        "iPhone",
+        "华为",
+        "鸿蒙",
+        "小米",
+        "特斯拉",
+        "智能眼镜",
+        "AI手机"
+      ]
+    },
+    {
+      "id": "business",
+      "name": "出海·商业",
+      "description": "跨境电商、平台政策、品牌、直播与消费",
+      "keywords": [
+        "出海",
+        "跨境",
+        "关税",
+        "外贸",
+        "亚马逊",
+        "TikTok",
+        "Temu",
+        "Shein",
+        "品牌",
+        "带货",
+        "直播",
+        "电商",
+        "视频号",
+        "微信小店",
+        "小红书",
+        "消费",
+        "融资",
+        "IPO",
+        "上市",
+        "涨价",
+        "降价",
+        "库存",
+        "商家"
+      ]
     }
   ],
   "note": "公开热榜采样，不代表微信指数或全网真实提及量。"

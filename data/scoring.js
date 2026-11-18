@@ -57,7 +57,9 @@
       .normalize("NFKC")
       .replace(/#[^#]{1,80}#/g, (match) => match.slice(1, -1))
       .replace(/[【】「」『』（）()［\][\]{}<>《》“”"']/g, "")
-      .replace(/微博|热搜|置顶|爆|新|荐|沸|热|精|话题/g, "")
+      // 只去标题尾部/头部的榜单标记，历史上按单字全局删除会把「新加坡」削成「加坡」
+      .replace(/^(?:【|\[)?(?:微博|热搜|置顶|话题|爆|沸|新|热|荐|精)+/g, "")
+      .replace(/(?:微博|热搜|置顶|话题|爆|沸|新|热|荐|精)+$/g, "")
       .replace(/[^\p{Script=Han}\p{Letter}\p{Number}]+/gu, "")
       .toLowerCase()
       .trim();
@@ -227,7 +229,116 @@
     });
   }
 
-  function buildReport(days, todayDate, platformConfig) {
+  function escapeRegExp(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // 中文关键词直接包含匹配；纯英文/数字关键词补词边界，避免 AI 命中 AIR、GPT 命中 GPTX
+  function keywordMatcher(keywords) {
+    const list = [...new Set((keywords || []).filter(Boolean).map(String))];
+    if (!list.length) return () => false;
+    const latin = [];
+    const plain = [];
+    list.forEach((keyword) => {
+      if (/^[\x00-\x7F]+$/.test(keyword)) latin.push(escapeRegExp(keyword));
+      else plain.push(escapeRegExp(keyword));
+    });
+    const latinRe = latin.length ? new RegExp(`(^|[^A-Za-z0-9])(${latin.join("|")})(?![A-Za-z0-9])`, "i") : null;
+    const plainRe = plain.length ? new RegExp(plain.join("|"), "i") : null;
+    return (text) => (latinRe ? latinRe.test(text) : false) || (plainRe ? plainRe.test(text) : false);
+  }
+
+  function entityLevel(score, platformCount) {
+    if (platformCount >= 6 || score >= 520) return "S";
+    if (platformCount >= 4 || score >= 320) return "A";
+    if (platformCount >= 2 || score >= 160) return "B";
+    return "C";
+  }
+
+  // 实体雷达：把「同一家公司/同一个人」被打散在十几个标题里的条目归并成一条关注线
+  function buildEntities(items, todayDate, watchlist) {
+    return (watchlist || [])
+      .filter((entity) => entity && entity.name)
+      .map((entity) => {
+        const matcher = keywordMatcher([entity.name, ...(entity.aliases || [])]);
+        const hits = items
+          .filter((item) => matcher(item.title))
+          .sort((a, b) => String(b.date).localeCompare(String(a.date)) || a.rank - b.rank);
+        if (!hits.length) return null;
+        const todayHits = hits.filter((item) => item.date === todayDate);
+        const platforms = new Map();
+        hits.forEach((item) => platforms.set(item.platform, item.platformName));
+        const dates = [...new Set(hits.map((item) => item.date))].sort();
+        const dailyCounts = {};
+        const dailyScores = {};
+        hits.forEach((item) => {
+          dailyCounts[item.date] = (dailyCounts[item.date] || 0) + 1;
+          dailyScores[item.date] = round((dailyScores[item.date] || 0) + Math.min(item.score || 0, 100));
+        });
+        const todayRaw = todayHits.reduce((sum, item) => sum + Math.min(item.score || 0, 100), 0);
+        const platformCount = platforms.size;
+        const score = round(Math.min(todayRaw, 600) + Math.min(platformCount, 6) * 25);
+        const stories = buildTopics(todayHits, todayDate, "today")
+          .sort((a, b) => b.todayScore - a.todayScore)
+          .slice(0, 3)
+          .map((topic) => ({
+            title: topic.title,
+            itemCount: topic.items.length,
+            platforms: topic.platforms,
+            url: topic.bestUrl,
+            score: topic.todayScore,
+          }));
+        return {
+          id: entity.id || entity.name,
+          name: entity.name,
+          group: entity.group || "关注",
+          aliases: entity.aliases || [],
+          level: entityLevel(score, platformCount),
+          score,
+          itemCount: todayHits.length,
+          totalItemCount: hits.length,
+          platformCount,
+          platformIds: [...platforms.keys()],
+          platforms: [...platforms.values()],
+          bestRank: todayHits.length ? Math.min(...todayHits.map((item) => item.rank)) : null,
+          daysCount: dates.length,
+          dates,
+          dailyCounts,
+          dailyScores,
+          stories,
+          items: todayHits.slice(0, 8),
+          latest: hits.slice(0, 4),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score || b.platformCount - a.platformCount || b.itemCount - a.itemCount);
+  }
+
+  // 垂直赛道：AI/科技、出海/商业等，按关键词把热榜条目标出来单独成栏
+  function buildVerticals(items, todayDate, verticals) {
+    return (verticals || [])
+      .map((vertical) => {
+        const matcher = keywordMatcher(vertical.keywords || []);
+        const hits = items.filter((item) => matcher(item.title));
+        if (!hits.length) return null;
+        const todayHits = hits.filter((item) => item.date === todayDate);
+        const topics = buildTopics(todayHits, todayDate, "today")
+          .sort((a, b) => b.todayScore - a.todayScore)
+          .slice(0, 8);
+        return {
+          id: vertical.id,
+          name: vertical.name,
+          description: vertical.description || "",
+          itemCount: todayHits.length,
+          platformCount: new Set(todayHits.map((item) => item.platform)).size,
+          topics,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function buildReport(days, todayDate, platformConfig, options) {
+    const opts = options || {};
     const dates = Object.keys(days || {}).sort();
     const weekStart = dateOffset(todayDate, -6);
     const twoWeekStart = dateOffset(todayDate, -13);
@@ -288,6 +399,8 @@
       twoWeekStart,
       availableDays: dates.filter((date) => date >= twoWeekStart && date <= todayDate).length,
       heatMissingCount: todayItems.filter((item) => item.heatMissing).length,
+      entities: buildEntities(twoWeekItems, todayDate, opts.watchlist),
+      verticals: buildVerticals(twoWeekItems, todayDate, opts.verticals),
       todayTopics,
       weekTopics,
       risingTopics,
@@ -311,7 +424,10 @@
     sameTopic,
     level,
     withDate,
+    keywordMatcher,
     buildTopics,
+    buildEntities,
+    buildVerticals,
     buildReport,
   };
 });
