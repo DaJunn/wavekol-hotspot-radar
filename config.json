@@ -1,0 +1,125 @@
+{
+  "apiSources": [
+    {
+      "id": "cnxiaobai",
+      "label": "cnxiaobai DailyHotApi",
+      "baseUrl": "https://cnxiaobai.com/DailyHotApi"
+    },
+    {
+      "id": "nntool",
+      "label": "nntool DailyHotApi",
+      "baseUrl": "https://hotapi.nntool.cc"
+    },
+    {
+      "id": "imsyy",
+      "label": "imsyy DailyHotApi",
+      "baseUrl": "https://api-hot.imsyy.top"
+    },
+    {
+      "id": "lysdad",
+      "label": "lysdad DailyHotApi",
+      "baseUrl": "https://hotapi.lysdad.cn"
+    },
+    {
+      "id": "nankoyo",
+      "label": "nankoyo DailyHotApi",
+      "baseUrl": "https://daily-hot-api.nankoyo.com"
+    },
+    {
+      "id": "baiwumm",
+      "label": "baiwumm DailyHotApi",
+      "baseUrl": "https://hot.baiwumm.com/api"
+    }
+  ],
+  "platformConfig": [
+    {
+      "id": "weibo",
+      "name": "微博",
+      "aliases": [
+        "weibo"
+      ]
+    },
+    {
+      "id": "douyin",
+      "name": "抖音",
+      "aliases": [
+        "douyin"
+      ]
+    },
+    {
+      "id": "baidu",
+      "name": "百度",
+      "aliases": [
+        "baidu"
+      ]
+    },
+    {
+      "id": "zhihu",
+      "name": "知乎",
+      "aliases": [
+        "zhihu"
+      ]
+    },
+    {
+      "id": "bilibili",
+      "name": "B站",
+      "aliases": [
+        "bilibili"
+      ]
+    },
+    {
+      "id": "toutiao",
+      "name": "今日头条",
+      "aliases": [
+        "toutiao"
+      ]
+    },
+    {
+      "id": "kuaishou",
+      "name": "快手",
+      "aliases": [
+        "kuaishou"
+      ]
+    },
+    {
+      "id": "thepaper",
+      "name": "澎湃",
+      "aliases": [
+        "thepaper"
+      ]
+    },
+    {
+      "id": "qq-news",
+      "name": "腾讯新闻",
+      "aliases": [
+        "qq-news",
+        "qq",
+        "newsqq"
+      ]
+    },
+    {
+      "id": "netease-news",
+      "name": "网易新闻",
+      "aliases": [
+        "netease-news",
+        "netease"
+      ]
+    },
+    {
+      "id": "sina-news",
+      "name": "新浪新闻",
+      "aliases": [
+        "sina-news",
+        "sina"
+      ]
+    },
+    {
+      "id": "36kr",
+      "name": "36氪",
+      "aliases": [
+        "36kr"
+      ]
+    }
+  ],
+  "note": "公开热榜采样，不代表微信指数或全网真实提及量。"
+}

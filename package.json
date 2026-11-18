@@ -1,0 +1,9 @@
+{
+  "name": "wavekol-hotspot-data",
+  "version": "2.0.0",
+  "private": true,
+  "description": "每日采集公开热榜并生成热点雷达前端数据",
+  "scripts": {
+    "collect": "node collect.js"
+  }
+}
