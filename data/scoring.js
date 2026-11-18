@@ -171,6 +171,7 @@
           title: item.title,
           platforms: new Set(),
           dates: new Set(),
+          dailyScores: {},
           bestRank: 999,
           bestUrl: "",
           todayRaw: 0,
@@ -190,6 +191,7 @@
       if (item.date === todayDate) topic.todayRaw += contribution;
       else topic.previousRaw += decayed;
       topic.weekRaw += mode === "today" ? contribution : decayed;
+      topic.dailyScores[item.date] = round((topic.dailyScores[item.date] || 0) + contribution);
       topic.items.push(item);
       if (item.score > (topic.topItem?.score || 0)) {
         topic.topItem = item;
@@ -211,6 +213,8 @@
         platforms: [...topic.platforms],
         bestRank: topic.bestRank === 999 ? null : topic.bestRank,
         daysCount: topic.dates.size,
+        dates: [...topic.dates].sort(),
+        dailyScores: topic.dailyScores,
         todayScore,
         weekScore,
         risingScore: round(todayScore - topic.previousRaw / Math.max(1, topic.dates.size - 1)),
@@ -253,6 +257,14 @@
       .filter((topic) => topic.daysCount >= 7)
       .sort((a, b) => b.weekScore - a.weekScore || b.platformCount - a.platformCount)
       .slice(0, 10);
+    const sustainedTopics = buildTopics(twoWeekItems, todayDate, "week")
+      .filter((topic) => topic.todayScore > 0 && (topic.daysCount >= 2 || topic.platformCount >= 2))
+      .map((topic) => ({
+        ...topic,
+        sustainScore: round(topic.weekScore * (1 + 0.2 * (topic.daysCount - 1)) + (topic.platformCount - 1) * 10),
+      }))
+      .sort((a, b) => b.sustainScore - a.sustainScore || b.daysCount - a.daysCount || b.platformCount - a.platformCount)
+      .slice(0, 10);
 
     const platformDistribution = (platformConfig || []).map((platform) => {
       const items = todayItems.filter((item) => item.platform === platform.id);
@@ -281,6 +293,7 @@
       risingTopics,
       sustained3to7Topics,
       sustained7to14Topics,
+      sustainedTopics,
       platformDistribution,
       rawItems,
     };
